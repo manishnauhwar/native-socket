@@ -2,9 +2,6 @@ import User from '../models/userModal.js';
 import bcrypt from 'bcryptjs';
 
 
-// @desc    Register new user
-// @route   POST /api/users/register
-// @access  Public
 export const registerUser = async (req, res) => {
     try {
       const { username, fullName, email, password, confirmPassword } = req.body;
@@ -50,9 +47,6 @@ export const registerUser = async (req, res) => {
     }
   };
 
-// @desc    Login user
-// @route   POST /api/users/login
-// @access  Public
 export const loginUser = async (req, res) => {
   try {
     const { username_or_email, password } = req.body;
@@ -88,6 +82,15 @@ export const loginUser = async (req, res) => {
         email: user.email
       }
     });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({}, 'username fullName email');
+    res.status(200).json(users);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

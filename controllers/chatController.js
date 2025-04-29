@@ -12,10 +12,15 @@ export const getChatHistory = async (req, res) => {
       isDeleted: false
     })
     .sort({ createdAt: 1 })
-    .populate('sender', 'username')
-    .populate('receiver', 'username');
+    .populate('sender', 'username fullName')
+    .populate('receiver', 'username fullName');
 
-    res.status(200).json(messages);
+    const transformedMessages = messages.map(message => ({
+      ...message.toObject(),
+      isSent: message.sender._id.toString() === userId
+    }));
+
+    res.status(200).json(transformedMessages);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

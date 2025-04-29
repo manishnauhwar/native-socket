@@ -44,16 +44,25 @@ io.on('connection', (socket) => {
         content: message
       });
 
+      const populatedMessage = await Message.findById(newMessage._id)
+        .populate('sender', 'username fullName')
+        .populate('receiver', 'username fullName');
+
+      const transformedMessage = {
+        ...populatedMessage.toObject(),
+        isSent: populatedMessage.sender._id.toString() === from
+      };
+
       const receiverSocket = onlineUsers.get(to);
       if (receiverSocket) {
         io.to(receiverSocket).emit('private_message', {
-          message: newMessage,
+          message: transformedMessage,
           from: from
         });
       }
 
       socket.emit('private_message', {
-        message: newMessage,
+        message: transformedMessage,
         to: to
       });
     } catch (error) {
