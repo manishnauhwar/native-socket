@@ -1,6 +1,7 @@
 import User from '../models/userModal.js';
+import Message from '../models/messageModal.js';
 import bcrypt from 'bcryptjs';
-
+import mongoose from 'mongoose';
 
 export const registerUser = async (req, res) => {
     try {
@@ -45,7 +46,7 @@ export const registerUser = async (req, res) => {
     } catch (error) {
       res.status(500).json({ message: error.message });
     }
-  };
+};
 
 export const loginUser = async (req, res) => {
   try {
@@ -55,7 +56,6 @@ export const loginUser = async (req, res) => {
       return res.status(400).json({ message: 'Please provide email/username and password' });
     }
 
-    // Check if user exists with either username or email
     const user = await User.findOne({ 
       $or: [
         { email: username_or_email },
@@ -91,6 +91,38 @@ export const getAllUsers = async (req, res) => {
   try {
     const users = await User.find({}, 'username fullName email');
     res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getUnreadCounts = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    const unreadCounts = await Message.aggregate([
+      {
+        $match: {
+          receiver: mongoose.Types.ObjectId(userId),
+          isRead: false,
+          isDeletedForEveryone: false,
+          deletedFor: { $ne: mongoose.Types.ObjectId(userId) }
+        }
+      },
+      {
+        $group: {
+          _id: '$sender',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const counts = {};
+    unreadCounts.forEach(item => {
+      counts[item._id.toString()] = item.count;
+    });
+
+    res.status(200).json(counts);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -16,7 +16,15 @@ const messageSchema = new mongoose.Schema(
       type: String,
       required: true
     },
-    isDeleted: {
+    deletedFor: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
+    isDeletedForEveryone: {
+      type: Boolean,
+      default: false
+    },
+    isRead: {
       type: Boolean,
       default: false
     }
